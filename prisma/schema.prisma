@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// schema starts here
+enum UserRole {
+  FEMBOY
+  RENTER
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String
+  role     UserRole
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  femboyProfile FemboyProfile?
+  renterProfile RenterProfile?
+
+  bookingsAsRenter Booking[] @relation("RenterBookings")
+  bookingsAsFemboy Booking[] @relation("FemboyBookings")
+
+  legalAcceptance LegalAcceptance?
+}
+
+model FemboyProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  displayName String
+  bio         String
+  baseRate    Int
+
+  user    User     @relation(fields: [userId], references: [id])
+  listing Listing?
+
+  images  FemboyProfileImage[]
+
+  createdAt DateTime @default(now())
+}
+
+
+model FemboyProfileImage {
+  id        String @id @default(cuid())
+  profileId String
+
+  url       String
+  isPrimary Boolean @default(false)
+
+  profile FemboyProfile @relation(fields: [profileId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model RenterProfile {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  nickname String?
+
+  user   User @relation(fields: [userId], references: [id])
+  images RenterProfileImage[]
+
+  createdAt DateTime @default(now())
+}
+
+
+model RenterProfileImage {
+  id        String @id @default(cuid())
+  profileId String
+
+  url       String
+  isPrimary Boolean @default(false)
+
+  profile RenterProfile @relation(fields: [profileId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Listing {
+  id       String  @id @default(cuid())
+  femboyId String  @unique
+  isActive Boolean @default(true)
+
+  femboy       FemboyProfile  @relation(fields: [femboyId], references: [id])
+  availability Availability[]
+
+  createdAt DateTime @default(now())
+}
+
+model Availability {
+  id        String @id @default(cuid())
+  listingId String
+
+  dayOfWeek Int // 0–6 (Sun–Sat)
+  startTime String // "13:00"
+  endTime   String // "18:00"
+
+  listing Listing @relation(fields: [listingId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Booking {
+  id String @id @default(cuid())
+
+  renterId String
+  femboyId String
+
+  date     DateTime
+  duration Int // hours
+  location String
+
+  totalPrice Int
+  status     BookingStatus @default(PENDING)
+
+  renter User @relation("RenterBookings", fields: [renterId], references: [id])
+  femboy User @relation("FemboyBookings", fields: [femboyId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model LegalAcceptance {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  acceptedTerms      Boolean
+  acceptedPrivacy    Boolean
+  acceptedDisclaimer Boolean
+
+  acceptedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

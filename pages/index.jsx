@@ -1,6 +1,8 @@
 import Link from "next/link";
 import AnimatedMessage from "../components/AnimatedMessage";
 import DelayCursor from "../components/DelayCursor";
+import AnimeCTAButton from "@components/ayuAtama/button";
+import FakeFemboyPopup from "@components/ayuAtama/fakePopup";
 
 export default function Index() {
   function Visitor() {
@@ -14,6 +16,8 @@ export default function Index() {
   }
   return (
     <div>
+      <FakeFemboyPopup />
+      <AnimeCTAButton />
       <h2>Selamat datang!</h2>
       <p>
         <Link href="/home">
